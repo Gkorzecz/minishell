@@ -12,6 +12,8 @@
 
 #include "../inc/minishell.h"
 
+/* Checks if a string has unclosed single or double quotes.
+Returns 1 if unclosed, 0 otherwise. */
 static int	check_unclosed_quotes(const char *s)
 {
 	int	squote;
@@ -32,7 +34,8 @@ static int	check_unclosed_quotes(const char *s)
 	return (squote || dquote);
 }
 
-/* helper function of remove_curly_brackets to check if current chars are ${ */
+/* Checks if the current character is "${" and not inside quotes.
+Updates quote states. Used in remove_curly_brackets(). */
 int	update_quotes_chk_curly_bracket(int *quotes, char ch, int i[3], char **s)
 {
 	quotes[0] = (quotes[0] + (!quotes[1] && ch == '\'')) % 2;
@@ -44,7 +47,8 @@ int	update_quotes_chk_curly_bracket(int *quotes, char ch, int i[3], char **s)
 		return (0);
 }
 
-/* converts ${VAR} to $VAR so that later it can be expanded correctly */
+/* Replaces ${VAR} with $VAR for correct expansion.
+Handles content inside quotes and reconstructs the string. */
 void	remove_curly_brackets(char **s, int i[3], int quotes[2], char *tmp[3])
 {
 	while (*s && i[0] < (int)ft_strlen(*s) && (*s)[++i[0]])
@@ -63,18 +67,19 @@ void	remove_curly_brackets(char **s, int i[3], int quotes[2], char *tmp[3])
 			tmp[1] = ft_strjoin(tmp[0], "$");
 			free(tmp[0]);
 			tmp[0] = ft_strjoin(tmp[1], tmp[2]);
-			ft_free_all(tmp[1], tmp[2], NULL, NULL);
+			free_all(tmp[1], tmp[2], NULL, NULL);
 			tmp[1] = ft_strjoin(tmp[0], "");
 			free(tmp[0]);
 			tmp[0] = ft_strdup(&(*s)[i[1] + 1]);
-			ft_free_all(*s, NULL, NULL, NULL);
+			free_all(*s, NULL, NULL, NULL);
 			*s = ft_strjoin(tmp[1], tmp[0]);
-			ft_free_all(tmp[0], tmp[1], NULL, NULL);
+			free_all(tmp[0], tmp[1], NULL, NULL);
 		}
 	}
 }
 
-/* helper function of process_heredoc to check if current chars are << */
+/* Checks for heredoc operator (<<) outside of quotes.
+Returns 1 if a valid heredoc is detected, 0 if syntax error. */
 int	update_quotes_chk_heredoc(int *quo, char ch, int i[3], char **s)
 {
 	quo[0] = (quo[0] + (!quo[1] && ch == '\'')) % 2;
@@ -92,7 +97,9 @@ int	update_quotes_chk_heredoc(int *quo, char ch, int i[3], char **s)
 		return (0);
 }
 
-void	*ft_process_input(char *input, t_cmd_set *p)
+/* Processes the user input: validates quotes, tokenizes input,
+parses commands, and prepares them for execution. */
+void	*process_input(char *input, t_cmd_set *p)
 {
 	char	**a;
 	int		i[3];
@@ -113,10 +120,10 @@ void	*ft_process_input(char *input, t_cmd_set *p)
 	}
 	a = split_and_ignore_space_if_in_quote(input, " ");
 	if (!a)
-		ft_free_exit(p, 1, "Unexpected Error");
+		free_exit(p, 1, "Unexpected Error");
 	p = parse_nodes(a, p);
-	ft_free_all(input, NULL, NULL, NULL);
+	free_all(input, NULL, NULL, NULL);
 	if (p && p->cmds)
-		ft_lstclear(&p->cmds, ft_lst_free);
+		ft_lstclear(&p->cmds, free_lst);
 	return (p);
 }

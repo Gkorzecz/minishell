@@ -12,7 +12,9 @@
 
 #include "../inc/minishell.h"
 
-/* checks if there are unclosed quotes, and returns number of quotes*/
+/* Checks if a string contains balanced quotes.
+Counts and verifies proper closing of both single and double quotes.
+Returns total number of quote characters, or -1 if unclosed quotes exist. */
 static int	check_quotes_get_len(char const *s1)
 {
 	int	count;
@@ -37,7 +39,9 @@ static int	check_quotes_get_len(char const *s1)
 	return (count);
 }
 
-/* trims starting and ending quotes */
+/* Removes all outer quote characters from a string.
+Preserves content inside quotes, ignores escaped or nested quotes.
+Returns a new string without the quote characters, or NULL on error. */
 char	*remove_quotes(char const *s1, int squote, int dquote)
 {
 	int		i;

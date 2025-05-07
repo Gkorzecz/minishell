@@ -1,3 +1,7 @@
+# Suppress still reachable memory leaks from readline and libtinfo libraries
+# So valgrind results can be more readable.
+# use : valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=readline.supp ./minishell
+  
 {
    readline_still_reachable
    Memcheck:Leak

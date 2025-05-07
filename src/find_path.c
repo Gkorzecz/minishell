@@ -12,7 +12,8 @@
 
 #include "../inc/minishell.h"
 
-/* helper func for find_command func, to join the path with the cmd to a str */
+/* Helper func for find_command function
+to join the path with the cmd to a str. */
 static char	*build_cmd_path(const char *dir, const char *cmd)
 {
 	char	*temp_dir;
@@ -33,8 +34,8 @@ static char	*build_cmd_path(const char *dir, const char *cmd)
 	return (cmd_path);
 }
 
-/* loops thorugh paths in PATH and returns tha path if a program
-	is found in that path */
+/*Loops thorugh paths in PATH and returns tha path if a program
+is found in that path. */
 char	*find_command(char **env_path, char *cmd, char *cmd_path)
 {
 	int		i;
@@ -43,7 +44,7 @@ char	*find_command(char **env_path, char *cmd, char *cmd_path)
 	i = -1;
 	while (env_path && env_path[++i])
 	{
-		ft_free_all(cmd_path, NULL, NULL, NULL);
+		free_all(cmd_path, NULL, NULL, NULL);
 		cmd_path = NULL;
 		temp = build_cmd_path(env_path[i], cmd);
 		if (!temp)
@@ -63,8 +64,8 @@ char	*find_command(char **env_path, char *cmd, char *cmd_path)
 	return (cmd_path);
 }
 
-/* if there is no / . or ~ sign before the cmd:
-	try to find cmd path, if not found print err cmd not found  */
+/* If there is no / . or ~ sign before the cmd:
+Try to find cmd path, if not found print err cmd not found. */
 static void	process_checks(t_list *cmd, char *path, t_cmd_set *p, char ***s)
 {
 	t_cmd	*n;
@@ -83,7 +84,7 @@ static void	process_checks(t_list *cmd, char *path, t_cmd_set *p, char ***s)
 	}
 }
 
-/* if the cmd starts with / and is not a directory, save it as cmd path */
+/* If the cmd starts with / and is not a directory, save it as cmd path */
 static DIR	*cmd_checks(t_list *cmd, char ***s, char *path, t_cmd_set *p)
 {
 	t_cmd	*n;
@@ -102,13 +103,13 @@ static DIR	*cmd_checks(t_list *cmd, char ***s, char *path, t_cmd_set *p)
 	}
 	else if (!dir)
 		process_checks(cmd, path, p, s);
-	ft_free_all(path, NULL, NULL, NULL);
+	free_all(path, NULL, NULL, NULL);
 	return (dir);
 }
 
-/* calls cmd_checks func which checks and returns if cmd is a directory.
-	if it's not builtin func: if it's a file and checks for permissions
-						if a directory shows "is a directory" error */
+/*Calls cmd_checks func which checks and returns if cmd is a directory.
+						if it's a file and checks for permissions.
+						if a directory shows "is a directory" error. */
 void	find_cmd_path(t_cmd_set *p, t_list *cmd, char **s, char *path)
 {
 	t_cmd	*n;
@@ -135,5 +136,5 @@ void	find_cmd_path(t_cmd_set *p, t_list *cmd, char **s, char *path)
 		closedir(dir);
 	if (cmd->next != NULL)
 		p->status_code = 0;
-	ft_free_array(&s);
+	free_array(&s);
 }

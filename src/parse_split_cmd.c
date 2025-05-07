@@ -12,8 +12,9 @@
 
 #include "../inc/minishell.h"
 
-/* inits the content of the cmd in linked list 
-	sets standard in, out fds */
+/* Initializes a new t_cmd struct for the command list.
+Allocates memory and sets default values for fds and pointers.
+Returns the initialized struct or NULL on malloc failure. */
 t_cmd	*init_cmd(void)
 {
 	t_cmd	*cmd;
@@ -28,8 +29,9 @@ t_cmd	*init_cmd(void)
 	return (cmd);
 }
 
-/* helper func to find how many words would there be after splitting
-	with special chars */
+/* Calculates the number of substrings that would result from
+splitting the string "s" using characters in "set" as delimiters.
+Quotes are respected. Returns -1 if quotes are unclosed. */
 static int	size_to_malloc(char *s, char *set, int count)
 {
 	int	q[2];
@@ -58,8 +60,10 @@ static int	size_to_malloc(char *s, char *set, int count)
 	return (count);
 }
 
-/* helper func which returns substr of separated words */
-static char	**ft_add_to_array(char **tmpstr, char *s, char *set, int i[3])
+/* Parses the string "s" and fills "tmpstr" with substrings
+split using characters in "set", while preserving quoted blocks.
+Uses index array i[0]=scan, i[1]=start, i[2]=insert index. */
+static char	**add_to_array2(char **tmpstr, char *s, char *set, int i[3])
 {
 	int	q[2];
 
@@ -84,10 +88,10 @@ static char	**ft_add_to_array(char **tmpstr, char *s, char *set, int i[3])
 	return (tmpstr);
 }
 
-/* helper func of split with special chars; <|> 
-	call size_to_malloc then mallocs for the new array 
-	calls ft_add_to_array to fill new array with splitted words */
-static char	**ft_split_with_pipe_or_redir_char(char const *s, char *set)
+/* Splits string "s" into tokens using special characters in "set"
+as delimiters. Handles quoted substrings properly.
+Returns a newly allocated array of tokens or NULL on failure. */
+static char	**split_with_pipe_or_redir_char(char const *s, char *set)
 {
 	char	**tmp;
 	int		word_count;
@@ -104,13 +108,14 @@ static char	**ft_split_with_pipe_or_redir_char(char const *s, char *set)
 	tmp = malloc((word_count + 1) * sizeof(char *));
 	if (tmp == NULL)
 		return (NULL);
-	tmp = ft_add_to_array(tmp, (char *)s, set, i);
+	tmp = add_to_array2(tmp, (char *)s, set, i);
 	tmp[word_count] = NULL;
 	return (tmp);
 }
 
-/* splits the args with <|>  chars 
-	replaces old array with new one, and frees temporary one */
+/* Splits each element in the "args" array using <, >, or | as delimiters.
+Handles quotes correctly and updates the array in-place.
+Returns the updated argument array. */
 char	**split_with_special_chars(char **args)
 {
 	char	**subsplit;
@@ -119,10 +124,10 @@ char	**split_with_special_chars(char **args)
 	i[2] = -1;
 	while (args && args[++i[2]])
 	{
-		subsplit = ft_split_with_pipe_or_redir_char(args[i[2]], "<|>");
+		subsplit = split_with_pipe_or_redir_char(args[i[2]], "<|>");
 		ft_array_replace(&args, subsplit, i[2]);
 		i[2] += ft_arr_len(subsplit) - 1;
-		ft_free_array(&subsplit);
+		free_array(&subsplit);
 	}
 	return (args);
 }

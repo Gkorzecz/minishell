@@ -54,13 +54,14 @@ typedef struct s_cmd_set
 /* Error Handling */
 
 void	*put_err(char *err_type, char *param, int err, t_cmd_set *p);
+void	error_token_newline(void);
 
 /* Signal Handling */
 
 void	signals_parent(int signal_code);
 void	signals_child(int signal_code);
 void	signals_heredoc(int signal_code);
-void	ft_set_signals(t_cmd_set *p);
+void	set_signals(t_cmd_set *p);
 
 /* String and Array Manipulation */
 
@@ -70,7 +71,7 @@ int		ft_strchrs_idx(const char *s, char *set);
 int		ft_strchr_idx(const char *s, int c);
 char	**ft_dup_array(char **m);
 char	**ft_array_insert(char **in, char *newstr);
-void	ft_free_array(char ***m);
+void	free_array(char ***m);
 void	ft_printarray(char **m);
 char	**ft_array_replace(char ***big, char **small, int n);
 char	**split_and_ignore_space_if_in_quote(char *s, char *set);
@@ -82,15 +83,15 @@ t_list	*free_tmp_lst(t_list *cmds, char **args, char **temp);
 
 /* Free and exit */
 
-void	ft_free_exit(t_cmd_set *p, int exit_code, char *msg);
+void	free_exit(t_cmd_set *p, int exit_code, char *msg);
 
 /* Initialisation */
 
-void	ft_init(t_cmd_set *p, char **envp, char **argv, int argc);
+void	init(t_cmd_set *p, char **envp, char **argv, int argc);
 
 /* Command Processing and Execution */
 
-void	*ft_process_input(char *out, t_cmd_set *p);
+void	*process_input(char *out, t_cmd_set *p);
 void	process_heredoc(char **s, int i[3], int quotes[2], char *tmp[3]);
 void	handle_input(char **input, int i[3], int quotes[2], t_cmd_set *p);
 int		update_quotes_chk_heredoc(int *quo, char ch, int i[3], char **s);
@@ -104,8 +105,8 @@ t_cmd	*out_fd_append(t_cmd *node, char **args, int *i, t_cmd_set *p);
 t_cmd	*in_fd_read(t_cmd *node, char **args, int *i, t_cmd_set *p);
 t_cmd	*in_fd_heredoc(t_cmd *node, char **args, int *i, t_cmd_set *p);
 void	handle_env_vars(char *str, int *i, int fd[2], t_cmd_set *p);
-void	ft_lst_free(void *content);
-void	ft_free_all(char *s1, char *s2, char *s3, char *s4);
+void	free_lst(void *content);
+void	free_all(char *s1, char *s2, char *s3, char *s4);
 void	exec_cmd_and_wait(t_cmd_set *p, int status);
 void	run_execve(t_cmd_set *p, t_cmd *n);
 t_cmd	*init_cmd(void);

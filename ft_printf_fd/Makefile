@@ -10,28 +10,36 @@
 #                                                                              #
 # **************************************************************************** #
 
-CFILES = ft_printchar_fd.c ft_printstr_fd.c ft_printf_fd.c ft_printhex_fd.c ft_printnbr_fd.c ft_printunsi_fd.c ft_printptr_fd.c
+CFILES	= ft_printchar_fd.c ft_printstr_fd.c ft_printf_fd.c ft_printhex_fd.c \
+		  ft_printnbr_fd.c ft_printunsi_fd.c ft_printptr_fd.c
 
-SRCS = $(CFILES)
+SRCS	= $(CFILES)
 
-OFILES = $(SRCS:.c=.o)
+OBJ_DIR	= obj
+OFILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
-CC = cc
+CC		= cc
+CFLAGS	= -Wall -Wextra -Werror
 
-CFLAGS = -Wall -Wextra -Werror
+NAME	= libftprintf_fd.a
 
-NAME = libftprintf_fd.a
+all: $(OBJ_DIR) $(NAME)
 
-all: $(NAME)
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/%.o: %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(NAME): $(OFILES)
 	@ar -rcs $(NAME) $(OFILES)
-clean:
-	@rm -f $(OFILES)
 
-fclean:clean
+clean:
+	@rm -rf $(OBJ_DIR)
+
+fclean: clean
 	@rm -f $(NAME)
 
-re: fclean $(NAME)
+re: fclean all
 
 .PHONY: all clean fclean re bonus

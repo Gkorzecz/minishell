@@ -12,20 +12,8 @@
 
 #include "../inc/minishell.h"
 
-/* to print string array, (used in env cmd)*/
-void	ft_printarray(char **m)
-{
-	int	i;
-
-	i = 0;
-	while (m && m[i])
-	{
-		ft_putendl_fd(m[i], 1);
-		i++;
-	}
-}
-
-/* returns the lenght of a string array */
+/* Returns the number of elements in a NULL-terminated string array.
+Used for envp or other argument arrays. */
 int	ft_arr_len(char **m)
 {
 	int	i;
@@ -38,7 +26,8 @@ int	ft_arr_len(char **m)
 	return (i);
 }
 
-/* makes copy of a string array (to copy envp in struct) */
+/* Creates a deep copy of a NULL-terminated string array.
+Each string is duplicated. Returns the new array or NULL on failure. */
 char	**ft_dup_array(char **arr_ptr)
 {
 	char	**arr_copy;
@@ -55,7 +44,7 @@ char	**ft_dup_array(char **arr_ptr)
 		arr_copy[i] = ft_strdup(arr_ptr[i]);
 		if (!arr_copy[i])
 		{
-			ft_free_array(&arr_copy);
+			free_array(&arr_copy);
 			return (NULL);
 		}
 		i++;
@@ -64,8 +53,9 @@ char	**ft_dup_array(char **arr_ptr)
 	return (arr_copy);
 }
 
-/* to add a new string into an array of strings
-	i.e. to add a new variable into the envp */
+/* Inserts a new string into a string array (like adding an env var).
+Returns a new array with the string added at the end.
+Frees the original input array. */
 char	**ft_array_insert(char **in, char *newstr)
 {
 	char	**out;
@@ -86,17 +76,18 @@ char	**ft_array_insert(char **in, char *newstr)
 		out[i] = ft_strdup(in[i]);
 		if (!out[i])
 		{
-			ft_free_array(&in);
-			ft_free_array(&out);
+			free_array(&in);
+			free_array(&out);
 		}
 	}
 	out[i] = ft_strdup(newstr);
-	ft_free_array(&in);
+	free_array(&in);
 	return (out);
 }
 
-/* to replace a string in an array of strings 
-	i.e. to change value of a variable in envp */
+/* Replaces the n-th element of a string array with another string array.
+Inserts all elements of 'small' in place of 'big[n]'.
+Frees the original array and returns the new one. */
 char	**ft_array_replace(char ***big, char **small, int n)
 {
 	char	**tmpstr;
@@ -120,7 +111,7 @@ char	**ft_array_replace(char ***big, char **small, int n)
 				tmpstr[++i[2]] = ft_strdup(small[i[1]]);
 		}
 	}
-	ft_free_array(big);
+	free_array(big);
 	*big = tmpstr;
 	return (*big);
 }

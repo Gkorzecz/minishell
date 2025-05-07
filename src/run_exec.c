@@ -12,12 +12,12 @@
 
 #include "../inc/minishell.h"
 
-/* call find_cmd_path to get path of a cmd
-	creates a pipe, calls chk_perm_call_child which creates fork if needed
-	closes the write end of the pipe 
-	sets in_fd if there is a next cmd
-	else closes the read end of the fd 
-	closes the input and output fds */
+/* Sets up a pipe for the given command and handles execution.
+Calls find_cmd_path to resolve the binary path.
+Creates a pipe and calls chk_perm_call_child to fork and exec if needed.
+Closes write-end of the pipe after fork.
+Passes the read-end to the next command if it exists.
+Closes input/output fds of the current command if > 2. */
 void	*setup_command_pipe(t_cmd_set *p, t_list *cmd)
 {
 	int	fd[2];
@@ -41,6 +41,12 @@ void	*setup_command_pipe(t_cmd_set *p, t_list *cmd)
 	return (NULL);
 }
 
+/* Executes the command using execve in the child process.
+Sets child signal handlers before execution.
+Exits with:
+- 127 if command not found or ENOENT,
+- 126 if permission denied or it's a directory,
+- 1 for all other errors. */
 void	run_execve(t_cmd_set *p, t_cmd *n)
 {
 	signal(SIGINT, signals_child);

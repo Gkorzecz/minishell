@@ -12,6 +12,9 @@
 
 #include "../inc/minishell.h"
 
+/* Scans the input string for heredoc operators (<<) outside quotes.
+Wraps the delimiter with single quotes to prevent expansion later.
+Modifies the input string in-place using tmp for partial rebuilding. */
 void	process_heredoc(char **s, int i[3], int quotes[2], char *tmp[3])
 {
 	while (*s && i[0] < (int)ft_strlen(*s) && (*s)[++i[0]])
@@ -29,17 +32,20 @@ void	process_heredoc(char **s, int i[3], int quotes[2], char *tmp[3])
 			tmp[1] = ft_strjoin(tmp[0], "<<'");
 			free(tmp[0]);
 			tmp[0] = ft_strjoin(tmp[1], tmp[2]);
-			ft_free_all(tmp[1], tmp[2], NULL, NULL);
+			free_all(tmp[1], tmp[2], NULL, NULL);
 			tmp[1] = ft_strjoin(tmp[0], "'");
 			free(tmp[0]);
 			tmp[0] = ft_strdup(&(*s)[i[1]]);
-			ft_free_all(*s, NULL, NULL, NULL);
+			free_all(*s, NULL, NULL, NULL);
 			*s = ft_strjoin(tmp[1], tmp[0]);
-			ft_free_all(tmp[0], tmp[1], NULL, NULL);
+			free_all(tmp[0], tmp[1], NULL, NULL);
 		}
 	}
 }
 
+/* Handles modifications to the input string before parsing.
+Processes heredoc delimiters and expands ${VAR} and $VAR.
+Updates the input string in-place with all applied changes. */
 void	handle_input(char **input, int i[3], int quotes[2], t_cmd_set *p)
 {
 	char	*tmp[3];

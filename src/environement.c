@@ -12,6 +12,9 @@
 
 #include "../inc/minishell.h"
 
+/* Finds the index of a variable named "var" in the envp array.
+Compares only the name part before '='.
+Returns the index if found, or -1 if not found. */
 int	find_env_var_index(char *var, char **envp)
 {
 	int	i;
@@ -34,6 +37,9 @@ int	find_env_var_index(char *var, char **envp)
 	return (-1);
 }
 
+/* Retrieves the value of an environment variable named "var".
+Returns a newly allocated string containing the value.
+If the variable does not exist, returns NULL. */
 char	*ft_getenv(char *var, char **envp)
 {
 	int			var_index;
@@ -55,6 +61,9 @@ char	*ft_getenv(char *var, char **envp)
 	return (NULL);
 }
 
+/* Sets or updates an environment variable in envp.
+If the variable exists, its value is replaced.
+If not, a new entry is added to the array. */
 char	**ft_setenv(char *var, char *value, char **envp)
 {
 	int		index;
@@ -78,12 +87,15 @@ char	**ft_setenv(char *var, char *value, char **envp)
 		{
 			tmpstr[1] = ft_strjoin(tmpstr[0], value);
 			envp = ft_array_insert(envp, tmpstr[1]);
-			ft_free_all(tmpstr[0], tmpstr[1], NULL, NULL);
+			free_all(tmpstr[0], tmpstr[1], NULL, NULL);
 		}
 	}
 	return (envp);
 }
 
+/* Expands an environment variable in a string.
+Extracts the variable name, retrieves its value,
+and writes it to the pipe output. */
 void	handle_env_vars(char *str, int *i, int fd[2], t_cmd_set *p)
 {
 	int		j;
@@ -102,6 +114,6 @@ void	handle_env_vars(char *str, int *i, int fd[2], t_cmd_set *p)
 	tmp = ft_substr(str, *i + 1, j - *i - 1);
 	tmp2 = ft_getenv(tmp, p->envp);
 	write(fd[1], tmp2, ft_strlen(tmp2));
-	ft_free_all(tmp, tmp2, NULL, NULL);
+	free_all(tmp, tmp2, NULL, NULL);
 	*i = j - 1;
 }

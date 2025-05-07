@@ -26,7 +26,7 @@ char	*get_here_str(char *str[3], char *lim, t_cmd_set *p)
 			str[0] = ft_strdup("");
 		str[2] = str[1];
 		str[1] = ft_strjoin(str[1], str[0]);
-		ft_free_all(str[0], str[2], NULL, NULL);
+		free_all(str[0], str[2], NULL, NULL);
 		str[0] = readline("> ");
 		if (!str[0])
 		{
@@ -40,7 +40,7 @@ char	*get_here_str(char *str[3], char *lim, t_cmd_set *p)
 		str[0] = ft_strjoin(str[0], "\n");
 		free(str[2]);
 	}
-	return (ft_free_all(str[0], NULL, NULL, NULL), str[1]);
+	return (free_all(str[0], NULL, NULL, NULL), str[1]);
 }
 
 /* expand the env variables in text */
@@ -107,7 +107,7 @@ int	read_heredoc(char *str[3], char *tmpstr[2], t_cmd_set *p)
 	tmpstr[0] = trim_all_quotes(tmpstr[0]);
 	str[1] = get_here_str(str, tmpstr[0], p);
 	process_here(str, fd, p, expand);
-	ft_free_all(str[1], tmpstr[0], NULL, NULL);
+	free_all(str[1], tmpstr[0], NULL, NULL);
 	if (fd[1] != -1)
 		close(fd[1]);
 	if (p->status_code == 130)
@@ -141,7 +141,7 @@ t_cmd	*in_fd_heredoc(t_cmd *node, char **args, int *i, t_cmd_set *p)
 		*i = -1;
 		if (node->in_fd != -1)
 		{
-			ft_putendl_fd("syntax error near unexpected token `newline'", 2);
+			error_token_newline();
 			p->status_code = 2;
 		}
 	}

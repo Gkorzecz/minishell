@@ -12,59 +12,69 @@
 
 #include "../inc/minishell.h"
 
-/* checks for Syntax errors i.e. <| or || >| */
-static int	is_invalid_syntax(char *t[], int *i)
+/* Checks for invalid syntax patterns in the token array.
+Handles cases like redirection without argument, or invalid sequences.
+Returns a string representing the unexpected token or "newline". */
+static char	*is_invalid_syntax(char *t[], int *i)
 {
-	int	syntax_error;
-
-	syntax_error = 0;
-	syntax_error = ((t[*i] && t[*i][0] == '<'
-				&& ((t[*i + 1] == NULL) || (t[*i + 1][0]
-						&& t[*i + 1][0] == '<' && ((t[*i + 2]
-								&& t[*i + 2] == NULL) || (t[*i + 2]
-								&& t[*i + 2][0] == '<'))))) || ((t[*i][0]
-					&& t[*i][0] == '>' && t[*i + 1] == NULL) || (t[*i][0] == '>'
-					&& t[*i + 1] && t[*i + 1][0]
-					&& t[*i + 1][0] == '|') || (t[*i][0]
-					&& t[*i][0] == '<' && t[*i + 1]
-					&& t[*i + 1][0] == '|') || (t[*i][0]
-					&& t[*i][0] == '|' && t[*i + 1]
-					&& t[*i + 1][0] == '|')));
-	if (syntax_error)
-		*i = -1;
-	return (syntax_error);
+	if (!t[*i])
+		return ("newline");
+	if ((t[*i][0] == '<' || t[*i][0] == '>') && (!t[*i + 1]))
+		return ("newline");
+	if (t[*i][0] == '<')
+	{
+		if (t[*i + 1] && t[*i + 1][0] == '|')
+			return ("|");
+		if (t[*i + 1] && t[*i + 1][0] == '<')
+		{
+			if (!t[*i + 2])
+				return ("newline");
+			if (t[*i + 2] && t[*i + 2][0] == '<')
+				return ("<");
+		}
+	}
+	if (t[*i][0] == '>' && t[*i + 1] && t[*i + 1][0] == '|')
+		return ("|");
+	if (t[*i][0] == '|' && t[*i + 1] && t[*i + 1][0] == '|')
+		return ("|");
+	return (NULL);
 }
 
-/* syntax check for redir or pipe chars and sets file descriptor */
+/* Processes one token at index i, checking for redirections or arguments.
+Handles append/truncate/redirect/pipe tokens and errors.
+Updates the command list or prints an error if invalid. */
 static t_cmd	*check_redir_pipe(t_cmd *t, char **a[2], int *i, t_cmd_set *p)
 {
-	if (*i >= 0 && a && a[0] && a[0][*i])
+	char	*err;
+
+	if (!a || !a[0] || !a[0][*i])
+		return (*i = -1, put_err("Empty_Pipe", NULL, 2, p), t);
+	err = is_invalid_syntax(a[0], i);
+	if (err)
+		return (*i = -1, put_err("Unexpected_Token", err, 2, p), t);
+	if (a[0][*i][0] == '>' && a[0][*i + 1]
+		&& a[0][*i + 1][0] == '>' && g_exit_status != 130)
+		t = out_fd_append(t, a[1], i, p);
+	else if (a[0][*i][0] == '>' && g_exit_status != 130)
+		t = out_fd_truncate(t, a[1], i, p);
+	else if (a[0][*i][0] == '<' && a[0][*i + 1]
+		&& a[0][*i + 1][0] == '<')
+		t = in_fd_heredoc(t, a[1], i, p);
+	else if (a[0][*i][0] == '<')
+		t = in_fd_read(t, a[1], i, p);
+	else if (a[0][*i][0] != '|')
+		t->args = ft_array_insert(t->args, a[1][*i]);
+	else
 	{
-		if (is_invalid_syntax(a[0], i))
-			return (put_err(0, "syntax error near unexpected token", 2, p), t);
-		else if (a[0][*i][0] == '>' && a[0][*i + 1] && a[0][*i + 1][0] == '>'
-			&& g_exit_status != 130)
-			t = out_fd_append(t, a[1], i, p);
-		else if (a[0][*i][0] == '>' && g_exit_status != 130)
-			t = out_fd_truncate(t, a[1], i, p);
-		else if (a[0][*i][0] == '<' && a[0][*i + 1] && a[0][*i + 1][0] == '<')
-			t = in_fd_heredoc(t, a[1], i, p);
-		else if (a[0][*i][0] == '<')
-			t = in_fd_read(t, a[1], i, p);
-		else if (a[0][*i][0] != '|')
-			t->args = ft_array_insert(t->args, a[1][*i]);
-		else
-		{
-			put_err("Empty_Pipe", NULL, 2, p);
-			*i = -1;
-		}
-		return (t);
+		put_err("Empty_Pipe", NULL, 2, p);
+		*i = -1;
 	}
-	*i = -1;
-	return (put_err("Empty_Pipe", NULL, 2, p), t);
+	return (t);
 }
 
-/* returns args after quotes removed */
+/* Duplicates the args array and removes quotes from each argument.
+Used to clean argument values before building command structures.
+Returns the new cleaned array. */
 static char	**args_after_quotes_removed(char **args)
 {
 	char	**temp;
@@ -82,9 +92,9 @@ static char	**args_after_quotes_removed(char **args)
 	return (temp);
 }
 
-/* calls args_after_quotes_removed func
-	adds the command at the end of the linked list
-	calls check_redir_pipe to check for errors, free_tmp_lst on error */
+/* Parses a list of arguments into a linked list of t_cmd structs.
+Handles quote removal, redirections, pipe splitting, and syntax validation.
+Returns the built list, or frees and exits early on error. */
 static t_list	*parse_cmds(char **args, int i, t_cmd_set *p)
 {
 	t_list	*cmds[2];
@@ -108,15 +118,15 @@ static t_list	*parse_cmds(char **args, int i, t_cmd_set *p)
 		if (i < 0)
 			return (free_tmp_lst(cmds[0], args, temp[1]));
 	}
-	ft_free_array(&temp[1]);
-	ft_free_array(&args);
+	free_array(&temp[1]);
+	free_array(&args);
 	return (cmds[0]);
 }
 
-/* call parse_cmds func and gives the splitted args as parameter
-	sets the $_ env value if only 1 command is entered (last parameter)
-	calls exec_cmd_and_wait
-	clears the cmds and list if an exit cmd was recently entered */
+/* Parses and executes the given arguments.
+Uses parse_cmds to build the command list.
+Sets the $_ variable and calls exec_cmd_and_wait.
+Returns the original pointer after execution. */
 void	*parse_nodes(char **args, t_cmd_set *p)
 {
 	int	status;

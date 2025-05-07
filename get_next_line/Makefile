@@ -10,29 +10,34 @@
 #                                                                              #
 # **************************************************************************** #
 
-CFILES = get_next_line.c get_next_line_utils.c
+CFILES	= get_next_line.c get_next_line_utils.c
+SRCS	= $(CFILES)
 
-SRCS = $(CFILES)
+OBJ_DIR	= obj
+OFILES	= $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
-OFILES = $(SRCS:.c=.o)
+CC		= cc
+CFLAGS	= -Wall -Wextra -Werror
 
-CC = cc
+NAME	= get_next_line.a
 
-CFLAGS = -Wall -Wextra -Werror
+all: $(OBJ_DIR) $(NAME)
 
-NAME = get_next_line.a
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)
 
-all: $(NAME)
+$(OBJ_DIR)/%.o: %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(NAME): $(OFILES)
 	@ar -rcs $(NAME) $(OFILES)
-clean:
-	@rm -f $(OFILES)
 
-fclean:clean
+clean:
+	@rm -rf $(OBJ_DIR)
+
+fclean: clean
 	@rm -f $(NAME)
 
-re: fclean $(NAME)
+re: fclean all
 
 .PHONY: all clean fclean re bonus
-

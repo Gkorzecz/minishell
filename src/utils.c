@@ -12,7 +12,8 @@
 
 #include "../inc/minishell.h"
 
-/* counts occurrence of a char in a string */
+/* Counts how many times character 'c' appears in string 's'.
+Returns 0 if string is NULL. */
 int	ft_countc(char *s, char c)
 {
 	int	count;
@@ -29,9 +30,9 @@ int	ft_countc(char *s, char c)
 	return (count);
 }
 
-/* returns index of a char (from a set of chars) in a string
-	if any of the chars is found in the string, returns the index
-	if none of chars found in string, -1 is returned */
+/* Returns index of a char (from a set of chars) in a string.
+	if any of the chars is found in the string, returns the index.
+	if none of chars found in string, -1 is returned. */
 int	ft_strchrs_idx(const char *s, char *set)
 {
 	int	i;
@@ -48,7 +49,7 @@ int	ft_strchrs_idx(const char *s, char *set)
 	return (-1);
 }
 
-/* returns index of a char in a string if found, else -1 if not found */
+/* Returns index of a char in a string if found, else -1 if not found. */
 int	ft_strchr_idx(const char *s, int c)
 {
 	unsigned char	c_unsigned;

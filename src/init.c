@@ -12,7 +12,9 @@
 
 #include "../inc/minishell.h"
 
-/* if envp is empty (env -i), set the default values */
+/* If envp is empty (e.g. when using `env -i`), fills envp manually.
+Adds default values like PATH, HOME, PWD, OLDPWD, SHLVL, and _.
+Returns 1 on success, 0 on memory allocation failure. */
 static int	allocate_env_vars_if_envp_empty(t_cmd_set *p)
 {
 	size_t	i;
@@ -35,10 +37,10 @@ static int	allocate_env_vars_if_envp_empty(t_cmd_set *p)
 	return (1);
 }
 
-/* inits some vars in struct to NULL or 0 
-	it was not mandatory to implement, but: if "env -i ./minishell"
-	was ran (empty envp), then will set call allocate_env_var func */
-static void	ft_init_reset(t_cmd_set *p, char **envp)
+/* Initializes fields in the t_cmd_set struct to default values.
+If envp is empty or NULL, allocates default environment using fallback values.
+Exits on memory allocation failure with error message. */
+static void	init_reset(t_cmd_set *p, char **envp)
 {
 	p->cmds = NULL;
 	p->input_text = NULL;
@@ -54,22 +56,22 @@ static void	ft_init_reset(t_cmd_set *p, char **envp)
 		{
 			if (!allocate_env_vars_if_envp_empty(p))
 			{
-				ft_putendl_fd("Error: Failed to duplicate env variables", 2);
-				ft_free_exit(p, 1, NULL);
+				ft_printf_fd(2, "Error: Failed to duplicate env variables");
+				free_exit(p, 1, NULL);
 			}
 		}
 		else
 		{
-			ft_putendl_fd("Error: Failed to allocate memory for p->envp", 2);
-			ft_free_exit(p, 1, NULL);
+			ft_printf_fd(2, "Error: Failed to allocate memory for p->envp");
+			free_exit(p, 1, NULL);
 		}
 	}
 }
 
-/* initilizes struct, sets signal & return codes to 0,
-	copies envp or Path if they are not empty
-	iterates the Shlvl and sets it to 1 if not set */
-void	ft_init(t_cmd_set *p, char **envp, char **argv, int argc)
+/* Initializes the shell state, sets envp and system vars like PWD and SHLVL.
+Increments SHLVL, sets default PATH if not present,
+prints a warning if arguments were passed to minishell. */
+void	init(t_cmd_set *p, char **envp, char **argv, int argc)
 {
 	char	*path;
 	char	*cwd;
@@ -77,8 +79,8 @@ void	ft_init(t_cmd_set *p, char **envp, char **argv, int argc)
 	char	*num;
 
 	if (argc > 1 || argv[1])
-		ft_putendl_fd("Arguments have been ignored", 2);
-	ft_init_reset(p, envp);
+		ft_printf_fd(2, "Arguments have been ignored.\n");
+	init_reset(p, envp);
 	path = ft_getenv("PATH", p->envp);
 	if (path == NULL)
 		p->envp = ft_setenv("PATH", "/usr/bin:/bin", p->envp);
@@ -94,5 +96,5 @@ void	ft_init(t_cmd_set *p, char **envp, char **argv, int argc)
 	if (num == NULL)
 		num = ft_strdup("");
 	p->envp = ft_setenv("SHLVL", num, p->envp);
-	ft_free_all(num, cwd, shlvl, path);
+	free_all(num, cwd, shlvl, path);
 }

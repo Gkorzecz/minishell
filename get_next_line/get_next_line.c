@@ -23,6 +23,8 @@ static char	*get_leftovers(char *buffer)
 	if (buffer[i] == '\0' || buffer[1] == '\0')
 		return (NULL);
 	remains = ft_substr_gnl(buffer, i + 1, ft_strlen_gnl(buffer) - i);
+	if (remains == NULL)
+		return (NULL);
 	if (*remains == 0)
 	{
 		free(remains);
@@ -85,18 +87,3 @@ char	*get_next_line(int fd)
 	remains = get_leftovers(line);
 	return (line);
 }
-/*#include <stdio.h>
-int	main(void)
-{
-	int fd;
-	fd = open("recherche.txt", O_RDONLY);
-	printf("1st get next line is : %s\n", get_next_line(fd));
-	printf("2cd get next line is : %s\n", get_next_line(fd));
-	printf("3rd get next line is : %s\n", get_next_line(fd));
-	printf("4th get next line is : %s\n", get_next_line(fd));
-	printf("5th get next line is : %s\n", get_next_line(fd));
-	printf("6th get next line is : %s\n", get_next_line(fd));
-	printf("7th get next line is : %s\n", get_next_line(fd));
-	close (fd);
-	return (0);
-}*/

@@ -12,10 +12,9 @@
 
 #include "../inc/minishell.h"
 
-/* if the cmd was internal (cd,unset,export,exit) runs builtin function
-	if there are child processes waits for all to finish 
-	then gets status from the child process and sets the p->status_code */
-
+/*If the cmd was internal (cd,unset,export,exit) runs builtin function.
+If there are child processes waits for all to finish.
+Then gets status from the child process and sets the p->status_code. */
 void	exec_cmd_and_wait(t_cmd_set *p, int status)
 {
 	t_list	*cmd;
@@ -43,9 +42,9 @@ void	exec_cmd_and_wait(t_cmd_set *p, int status)
 	p->status_code = p->status_code & 255;
 }
 
-/* duplicates file descriptors, if in_fd is specified -> to stdin
-	if out_fd is specified -> to stdout 
-	after duplicate, closes the oldfds */
+/* Duplicates file descriptors, if in_fd is specified -> to stdin.
+If out_fd is specified -> to stdout .
+After duplicate, closes the oldfds. */
 static void	*dup_io_fds(t_list *cmd, int fd[2])
 {
 	t_cmd	*node;
@@ -72,8 +71,8 @@ static void	*dup_io_fds(t_list *cmd, int fd[2])
 	return (NULL);
 }
 
-/* calls function to set redirections
-	runs external cmd or internal (pwd,echo,env) in child process */
+/* Calls function to set redirections.
+Runs external cmd or internal (pwd,echo,env) in child process. */
 void	*exec_in_child(t_cmd_set *p, t_list *cmd, int fd[2])
 {
 	t_cmd	*n;
@@ -90,13 +89,13 @@ void	*exec_in_child(t_cmd_set *p, t_list *cmd, int fd[2])
 		p->status_code = 0;
 	l = p->status_code;
 	if (p && p->cmds)
-		ft_lstclear(&p->cmds, ft_lst_free);
+		ft_lstclear(&p->cmds, free_lst);
 	if (p && p->envp)
-		ft_free_array(&p->envp);
+		free_array(&p->envp);
 	exit(l);
 }
 
-/* creates child process, call func to run the cmd in child process */
+/* Creates child process, call func to run the cmd in child process. */
 void	create_fork(t_cmd_set *p, t_list *cmd, int fd[2])
 {
 	pid_t	pid;
@@ -118,10 +117,10 @@ void	create_fork(t_cmd_set *p, t_list *cmd, int fd[2])
 		exec_in_child(p, cmd, fd);
 }
 
-/* checks if the cmd is executable, if not checks if it is a directory
-	if it is a directory sets status_code to 126
-	if it is not a directory sets status_code to 127 
-	if it's executable then calls the create_fork function  */
+/* Checks if the cmd is executable, if not checks if it is a directory.
+If it is a directory sets status_code to 126.
+If it is not a directory sets status_code to 127.
+If it's executable then calls the create_fork function. */
 void	*chk_perm_call_child(t_cmd_set *p, t_list *cmd, int fd[2])
 {
 	t_cmd	*n;

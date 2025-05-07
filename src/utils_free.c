@@ -12,14 +12,14 @@
 
 #include "../inc/minishell.h"
 
-/* frees the content in the linked list, which are args, cmd_path
-	closes the file descriptors if not -1 */
-void	ft_lst_free(void *content)
+/* Frees the content of a t_cmd struct inside a linked list node.
+Frees arguments and cmd_path, and closes fds if they are valid and open. */
+void	free_lst(void *content)
 {
 	t_cmd	*node;
 
 	node = content;
-	ft_free_array(&node->args);
+	free_array(&node->args);
 	if (node->cmd_path)
 		free(node->cmd_path);
 	if (node->in_fd != 0 && node->in_fd != -1)
@@ -30,8 +30,9 @@ void	ft_lst_free(void *content)
 		free(node);
 }
 
-/* gets a string array as parameter and frees all strings in it */
-void	ft_free_array(char ***m)
+/* Frees a NULL-terminated array of strings and sets pointer to NULL.
+Takes a triple pointer to free both the content and container. */
+void	free_array(char ***m)
 {
 	int	i;
 
@@ -54,9 +55,9 @@ void	ft_free_array(char ***m)
 	}
 }
 
-/* gets strings as parameter and frees them if not NULL
-	all 3 args are optional, args can be 1, 2, 3 or 4 strings */
-void	ft_free_all(char *s1, char *s2, char *s3, char *s4)
+/* Frees up to four strings passed as parameters.
+Each string is optional and will be freed only if not NULL. */
+void	free_all(char *s1, char *s2, char *s3, char *s4)
 {
 	if (s1 != NULL)
 		free(s1);
@@ -68,11 +69,13 @@ void	ft_free_all(char *s1, char *s2, char *s3, char *s4)
 		free(s4);
 }
 
-/* frees the tmp array, called when a pipe redir error found */
+/* Frees temporary data structures used during parsing failure.
+Clears the command list and both string arrays.
+Returns NULL to allow inline usage on error. */
 t_list	*free_tmp_lst(t_list *cmds, char **args, char **temp)
 {
-	ft_lstclear(&cmds, ft_lst_free);
-	ft_free_array(&temp);
-	ft_free_array(&args);
+	ft_lstclear(&cmds, free_lst);
+	free_array(&temp);
+	free_array(&args);
 	return (NULL);
 }

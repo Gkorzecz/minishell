@@ -12,38 +12,42 @@
 
 #include "../inc/minishell.h"
 
-/* helper func for split with space, to count how many words are there */
-static int	ft_count_tokens(const char *s, char *c, int i[2])
+/* Counts the number of tokens the input string, using " " as delimiter.
+Skips delimiters inside quotes (single or double).
+Uses indexs[0] as index and indexs[1] as token count. */
+static int	count_tokens(const char *s, char *c, int indexs[2])
 {
-	int	q[2];
+	int	in_quote;
+	int	quote_char;
 
-	q[0] = 0;
-	q[1] = 0;
-	while (s[i[0]] != '\0')
+	in_quote = 0;
+	quote_char = 0;
+	while (s[indexs[0]] != '\0')
 	{
-		if (!ft_strchr(c, s[i[0]]))
+		if (!ft_strchr(c, s[indexs[0]]))
 		{
-			i[1]++;
-			while (s[i[0]] && (!ft_strchr(c, s[i[0]]) || q[0]))
+			indexs[1]++;
+			while (s[indexs[0]] && (!ft_strchr(c, s[indexs[0]]) || in_quote))
 			{
-				if (!q[1] && s[i[0]] && (s[i[0]] == '\"' || s[i[0]] == '\''))
-					q[1] = s[i[0]];
-				q[0] = (q[0] + (s[i[0]] == q[1])) % 2;
-				q[1] *= q[0] != 0;
-				i[0]++;
+				if (!quote_char && (s[indexs[0]] == '\"'
+						|| s[indexs[0]] == '\''))
+					quote_char = s[indexs[0]];
+				in_quote = (in_quote + (s[indexs[0]] == quote_char)) % 2;
+				quote_char *= in_quote != 0;
+				indexs[0]++;
 			}
-			if (q[0])
-				return (-1);
 		}
 		else
-			i[0]++;
+			indexs[0]++;
 	}
-	return (i[1]);
+	return (indexs[1]);
 }
 
-/* helper func for split with space
-	which gets substrings and put in an array */
-static char	**ft_add_to_arr(char **tmpstr, char *s, char *set, int i[3])
+/* Extracts substrings from "s", skipping delimiters in quotes,
+and stores them into "tmpstr". indexes[0]=scan, [1]=start, [2]=output index.
+q[0] single quote, q[1] double quotes. */
+static char	**add_to_array1(char **tmpstr, char *s,
+	char *set, int indexes[3])
 {
 	int	s_len;
 	int	q[2];
@@ -51,47 +55,48 @@ static char	**ft_add_to_arr(char **tmpstr, char *s, char *set, int i[3])
 	q[0] = 0;
 	q[1] = 0;
 	s_len = ft_strlen(s);
-	while (s[i[0]])
+	while (s[indexes[0]])
 	{
-		while (s[i[0]] && ft_strchr(set, s[i[0]]) && s[i[0]] != '\0')
-			i[0]++;
-		i[1] = i[0];
-		while (s[i[0]] && (!ft_strchr(set, s[i[0]]) || q[0] || q[1]))
+		while (s[indexes[0]] && ft_strchr(set, s[indexes[0]]))
+			indexes[0]++;
+		indexes[1] = indexes[0];
+		while (s[indexes[0]] && (!ft_strchr(set, s[indexes[0]])
+				|| q[0] || q[1]))
 		{
-			q[0] = (q[0] + (!q[1] && s[i[0]] == '\'')) % 2;
-			q[1] = (q[1] + (!q[0] && s[i[0]] == '\"')) % 2;
-			i[0]++;
+			q[0] = (q[0] + (!q[1] && s[indexes[0]] == '\'')) % 2;
+			q[1] = (q[1] + (!q[0] && s[indexes[0]] == '\"')) % 2;
+			indexes[0]++;
 		}
-		if (i[1] >= s_len)
-			tmpstr[i[2]++] = "\0";
+		if (indexes[1] >= s_len)
+			tmpstr[indexes[2]++] = "\0";
 		else
-			tmpstr[i[2]++] = ft_substr(s, i[1], i[0] - i[1]);
+			tmpstr[indexes[2]++] = ft_substr(s, indexes[1],
+					indexes[0] - indexes[1]);
 	}
 	return (tmpstr);
 }
 
-/* splits with space as delimiter but only  if it's not in quotes */
+/* Splits string "s" by delimiter " " ignoring those inside quotes.
+Returns an array of substrings (tokens). */
 char	**split_and_ignore_space_if_in_quote(char *s, char *set)
 {
 	char	**tmpstr;
 	int		nwords;
-	int		i[3];
-	int		counts[2];
+	int		indexes[3];
+	int		token_state[2];
 
-	i[0] = 0;
-	i[1] = 0;
-	i[2] = 0;
-	counts[0] = 0;
-	counts[1] = 0;
+	indexes[0] = 0;
+	indexes[1] = 0;
+	indexes[2] = 0;
+	token_state[0] = 0;
+	token_state[1] = 0;
 	if (!s)
 		return (NULL);
-	nwords = ft_count_tokens(s, set, counts);
-	if (nwords == -1)
-		return (NULL);
+	nwords = count_tokens(s, set, token_state);
 	tmpstr = malloc((nwords + 1) * sizeof(char *));
 	if (tmpstr == NULL)
 		return (put_err(NULL, "Malloc failed", 1, NULL), NULL);
-	tmpstr = ft_add_to_arr(tmpstr, s, set, i);
+	tmpstr = add_to_array1(tmpstr, s, set, indexes);
 	tmpstr[nwords] = NULL;
 	return (tmpstr);
 }

@@ -12,16 +12,19 @@
 
 #include "../inc/minishell.h"
 
-void	ft_free_exit(t_cmd_set *p, int exit_code, char *msg)
+/* Frees all allocated memory and exits the shell.
+Prints the message to stderr if provided.
+Cleans up input, environment, command list, and readline history. */
+void	free_exit(t_cmd_set *p, int exit_code, char *msg)
 {
 	if (msg)
-		ft_putendl_fd(msg, 2);
+		ft_printf_fd(2, msg);
 	if (p && p->input_text != NULL)
 		free(p->input_text);
 	if (p && p->envp && *p->envp)
-		ft_free_array(&p->envp);
+		free_array(&p->envp);
 	if (p && p->cmds)
-		ft_lstclear(&p->cmds, ft_lst_free);
+		ft_lstclear(&p->cmds, free_lst);
 	rl_clear_history();
 	exit(exit_code);
 }
